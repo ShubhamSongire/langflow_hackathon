@@ -12,7 +12,7 @@ import pdfplumber
 from PIL import Image
 from typing import Optional, List
 
-os.environ['OPENAI_API_KEY'] = "111e976694f24802a152f35e531bc6c2"
+os.environ['OPENAI_API_KEY'] = ""
 
 # class CustomOpenAI(ChatOpenAI):
 #     def __init__(self, **kwargs):

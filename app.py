@@ -115,7 +115,7 @@ with c7:
             st.session_state['text_boxes'][index] = (name, context)
 
     # Add a new empty row when "+ Add row" button is clicked
-    if st.button("+ Add row"):
+    if st.button("+ Add Extraction Entities"):
         st.session_state['text_boxes'].append(("", ""))
         st.session_state['is_submitting'] = False
 

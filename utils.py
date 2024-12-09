@@ -1,7 +1,7 @@
 
 # from paddleocr import PaddleOCR
 # import cv2
-import os, shutil
+import os, shutil, time
 import re
 import numpy as np
 import pypdfium2 as pdfium
@@ -11,8 +11,15 @@ import concurrent.futures
 import pdfplumber
 from PIL import Image
 from typing import Optional, List
+import os
+from pinecone import Pinecone, ServerlessSpec
+from dotenv import load_dotenv
+from openai import OpenAI
 
+load_dotenv()
 os.environ['OPENAI_API_KEY'] = ""
+os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
+pc = Pinecone(api_key=os.getenv("pinecone"))
 
 # class CustomOpenAI(ChatOpenAI):
 #     def __init__(self, **kwargs):
@@ -47,6 +54,39 @@ os.environ['OPENAI_API_KEY'] = ""
 # aiml_client = client()
 
 llm_model = ChatOpenAI(model="gpt-4o",openai_api_key=os.getenv("OPENAI_API_KEY"),temperature=0.0, openai_api_base="https://api.aimlapi.com/v1")
+
+load_dotenv()
+pc = Pinecone(api_key=os.getenv("pinecone"))
+
+# Now do stuff
+if 'resume-index' not in pc.list_indexes().names():
+    pc.create_index(
+        name='my_index', 
+        dimension=3072, 
+        metric='cosine',
+        spec=ServerlessSpec(
+            cloud='aws',
+            region='us-east-1'
+        )
+    )
+index = pc.Index("resume-index")
+
+def get_openai_embedding(text):
+    client = OpenAI()
+    embeddings_new = client.embeddings.create(input = [text], model='text-embedding-3-large').data[0].embedding
+    return embeddings_new
+
+def set_upstream(filename, embeddings_data):
+    embeddings = []
+    filename = filename+time.time()
+    embeddings.append((filename, embeddings_data)) 
+    # Batch insert into Pinecone
+    batch_size = 100
+    for i in range(0, len(embeddings), batch_size):
+        batch = embeddings[i:i+batch_size]
+        vectors = [(doc_id, embedding) for doc_id, embedding in batch]
+        index.upsert(vectors, namespace= "ns1")
+
 
 # For OCR Resumes
 # ocr = PaddleOCR(use_angle_cls=True, lang='en',

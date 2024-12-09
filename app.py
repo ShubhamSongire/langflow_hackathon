@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from utils import extract_paddle, save_files, justification, extract_format
+from utils import extract_paddle, save_files, justification, extract_format, set_upstream, get_openai_embedding
 import json
 import pandas as pd
 import shutil  # Import the shutil module for file/directory operations
@@ -194,6 +194,9 @@ with c8:
                     extract_paddle_end_time = time.time()
                     extract_paddle_time = extract_paddle_end_time - extract_paddle_start_time
                     times_df[main_uploaded_file.name]['extract_paddle'] = extract_paddle_time.tolist() if isinstance(extract_paddle_time, np.ndarray) else extract_paddle_time
+
+                    # pinecone to query question
+                    set_upstream(main_uploaded_file.name, get_openai_embedding(text))
 
                     # Justification
                     justification_start_time = time.time()

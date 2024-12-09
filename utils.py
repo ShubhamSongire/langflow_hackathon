@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
-os.environ['OPENAI_API_KEY'] = ""
+# os.environ['OPENAI_API_KEY'] = ""
 os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
 pc = Pinecone(api_key=os.getenv("pinecone"))
 
@@ -40,20 +40,9 @@ pc = Pinecone(api_key=os.getenv("pinecone"))
 
 #         return _completion_with_retry(**kwargs)
 
-# def client():
-#     from typing import List
-#     from openai import OpenAI
-#     openai_api_base = "https://api.aimlapi.com/v1"
 
-#     aiml_client = OpenAI(
-#         api_key="EMPTY",
-#         base_url=openai_api_base,
-#     )
-#     return aiml_client
 
-# aiml_client = client()
-
-llm_model = ChatOpenAI(model="gpt-4o",openai_api_key=os.getenv("OPENAI_API_KEY"),temperature=0.0, openai_api_base="https://api.aimlapi.com/v1")
+llm_model = ChatOpenAI(model="gpt-4o",openai_api_key=OPENAI_API_KEY,temperature=0.0)
 
 load_dotenv()
 pc = Pinecone(api_key=os.getenv("pinecone"))
@@ -70,6 +59,14 @@ if 'resume-index' not in pc.list_indexes().names():
         )
     )
 index = pc.Index("resume-index")
+
+def search_resumes(query, top_k=5):
+    # Generate embedding for the query
+    query_embedding = get_openai_embedding(query)
+
+    # Perform similarity search in Pinecone
+    results = index.query(vector=query_embedding, top_k=top_k, include_metadata=True)
+    return results
 
 def get_openai_embedding(text):
     client = OpenAI()
